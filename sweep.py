@@ -51,6 +51,12 @@ def main() -> None:
     p.add_argument("--seeds", type=int, nargs="+", default=[1, 2, 3, 4, 5])
     p.add_argument("--total-steps", type=int, default=3_000_000)
     p.add_argument("--ent-coef", type=float, default=0.0)
+    # MinAtar experiment regime (picked by probing, see GUIDE.md): the default
+    # epochs=4 / lr=2.5e-4 leaves the clip engaged on <0.3% of samples, which
+    # would make clip asymmetry inert. epochs=8 / lr=1e-3 clips ~2% per side
+    # and learns faster.
+    p.add_argument("--epochs", type=int, default=8)
+    p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--jobs", type=int, default=6)
     p.add_argument("--out", required=True)
     args = p.parse_args()
@@ -69,6 +75,10 @@ def main() -> None:
             str(ch),
             "--ent-coef",
             str(args.ent_coef),
+            "--epochs",
+            str(args.epochs),
+            "--lr",
+            str(args.lr),
             "--total-steps",
             str(args.total_steps),
             "--seed",

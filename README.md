@@ -52,7 +52,7 @@ Three findings:
    right setting is a property of the environment.
 
 The 3-seed pilot that motivated the full grid (and caught my sign error in
-the mechanism story, see [GUIDE.md](GUIDE.md#5-splitting-the-clip)) is
+the mechanism story, see [GUIDE.md](GUIDE.md#7-splitting-the-clip)) is
 preserved in `figures/pilot_*`.
 
 ## Run it
@@ -81,7 +81,7 @@ uv run python -m ppo.plot --runs runs/breakout-grid --out figures --prefix break
 | `ppo/train.py` / `ppo/sweep.py` | one run / the resumable parallel grid |
 | `ppo/plot.py` | trajectories + heatmap figures from run logs |
 | `walkthrough.ipynb` | the objective drawn until it makes sense, plus live mini-runs |
-| `GUIDE.md` | full derivation, the dead-zone table, design decisions, reading list |
+| `GUIDE.md` | teaches PPO from zero: the math, the loop, the telemetry, the finding |
 | `tests/` | the math, as assertions |
 
 ## Design decisions that matter
@@ -93,7 +93,7 @@ uv run python -m ppo.plot --runs runs/breakout-grid --out figures --prefix break
   MinAtar the ratio leaves the clip range on <0.3% of samples — asymmetry
   would be inert and the grid would measure seed noise. I probed until
   clipping engaged (~2%/side at `epochs=8, lr=1e-3`) while learning got
-  *faster*. Probe table in [GUIDE.md](GUIDE.md#6-experimental-design-decisions-and-why).
+  *faster*. Probe table in [GUIDE.md](GUIDE.md#8-experimental-design-decisions-and-why).
 - **Entropy is measured on the behavior policy**, at collection time, before
   any gradient step touches the network.
 - **Truncation is not death.** Time-limit endings bootstrap $\gamma V(s_{final})$

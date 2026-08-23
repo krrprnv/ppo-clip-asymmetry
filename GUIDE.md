@@ -1,6 +1,6 @@
 # The guide
 
-This is the document I wish someone had handed me before PPO. It goes from
+PPO from zero, ending at the experiment. It goes from
 "what problem is RL even solving" to the full training loop, then splits the
 clip range in two and walks through what we found. Nothing here needs more
 than basic calculus and probability. Read it next to `ppo/core.py` — every

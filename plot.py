@@ -58,8 +58,16 @@ def _series(seed_rows: list[list[dict]], key: str, smooth: int = 5):
         ]
     )
     if smooth > 1:
-        kernel = np.ones(smooth) / smooth
-        vals = np.array([np.convolve(v, kernel, mode="same") for v in vals])
+        # NaN-safe moving average normalized by the true window overlap, so
+        # the ends don't dive toward zero-padding.
+        kernel = np.ones(smooth)
+        smoothed = []
+        for v in vals:
+            ok = ~np.isnan(v)
+            num = np.convolve(np.where(ok, v, 0.0), kernel, mode="same")
+            den = np.convolve(ok.astype(float), kernel, mode="same")
+            smoothed.append(np.where(den > 0, num / np.maximum(den, 1e-9), np.nan))
+        vals = np.array(smoothed)
     return steps, np.nanmean(vals, axis=0), np.nanstd(vals, axis=0)
 
 

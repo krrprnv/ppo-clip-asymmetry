@@ -3,7 +3,7 @@
 [![tests](https://github.com/krrprnv/ppo-clip-asymmetry/actions/workflows/tests.yml/badge.svg)](https://github.com/krrprnv/ppo-clip-asymmetry/actions/workflows/tests.yml)
 
 In 2025 the LLM-RL world found out that PPO's two clip bounds do different
-jobs: loosening the lower bound pushes policy entropy up, loosening the upper
+jobs: tightening the lower bound pushes policy entropy up, tightening the upper
 bound pushes it down ([Park et al., arXiv:2509.26114](https://arxiv.org/abs/2509.26114)).
 DAPO trains frontier reasoning models on this ([arXiv:2503.14476](https://arxiv.org/abs/2503.14476)).
 The discovery was made on models with ~100,000-token action spaces, and as far

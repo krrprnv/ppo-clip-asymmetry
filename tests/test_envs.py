@@ -28,8 +28,9 @@ def test_autoreset_reports_episodes_and_restarts():
     envs = SyncVecEnv("CartPole-v1", num_envs=2, seed=0)
     envs.reset()
     total_episodes = 0
-    for _ in range(600):  # CartPole under random-ish actions dies fast
-        actions = np.random.default_rng(0).integers(0, 2, size=2)
+    rng = np.random.default_rng(0)
+    for _ in range(600):  # CartPole under random actions dies fast
+        actions = rng.integers(0, 2, size=2)
         _, _, term, trunc, _, finished = envs.step(actions)
         total_episodes += len(finished)
         for ret, length in finished:

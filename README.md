@@ -1,5 +1,7 @@
 # ppo-clip-asymmetry
 
+[![tests](https://github.com/krrprnv/ppo-clip-asymmetry/actions/workflows/tests.yml/badge.svg)](https://github.com/krrprnv/ppo-clip-asymmetry/actions/workflows/tests.yml)
+
 In 2025 the LLM-RL world found out that PPO's two clip bounds do different
 jobs: loosening the lower bound pushes policy entropy up, loosening the upper
 bound pushes it down ([Park et al., arXiv:2509.26114](https://arxiv.org/abs/2509.26114)).
@@ -16,16 +18,16 @@ $$L(\theta) = \mathbb{E}\left[ \min\!\big( r_t A_t,\ \mathrm{clip}(r_t,\ 1-\epsi
 
 If the mechanism transfers, every symmetric-clip PPO since 2017 has been
 carrying a hidden entropy regularizer inside its clip range. If it doesn't,
-the hottest clipping trick in LLM-RL is a large-vocabulary artifact — which is
+the hottest clipping trick in LLM-RL is a large-vocabulary artifact, which is
 what DPPO ([arXiv:2602.04879](https://arxiv.org/abs/2602.04879)) predicts.
 Either answer is worth having.
 
 ## Results
 
 **Full experiment: 4×4 grid (clip_low × clip_high) × 5 seeds × 3M steps,
-`ent_coef = 0`, on breakout and asterix — 160 runs.**
+`ent_coef = 0`, on breakout and asterix: 160 runs.**
 
-What the entropy difference looks like as behavior — same algorithm, same
+What the entropy difference looks like as behavior: same algorithm, same
 seed, only the clip bounds differ. Watch the action distributions: the
 min-entropy policy keeps collapsing to a single bar, the max-entropy one
 stays spread (regenerate with `uv run python -m ppo.render`):
@@ -43,13 +45,13 @@ asterix versions are in `figures/`):
 Three findings:
 
 1. **The mechanism transfers.** Tighter `clip_low` → higher entropy, looser
-   `clip_high` → higher entropy — monotone along both axes of both heatmaps,
+   `clip_high` → higher entropy: monotone along both axes of both heatmaps,
    with no entropy bonus anywhere. Same signs Park et al. measured at
    |A|≈100k, reproduced at |A|=6. On breakout the range is enormous: 0.30 to
    1.23 nats, from the clip setting alone.
 2. **`clip_low` is the dominant dial.** It moves entropy ~3× further than
    `clip_high` at matched widths. The literature's obsession with clip-higher
-   (DAPO) targets the weaker of the two knobs — at least at this scale.
+   (DAPO) targets the weaker of the two knobs, at least at this scale.
 3. **The performance effect does not transfer — it flips.** On breakout,
    high-entropy cells win (best 21.4 ± 2.1 at (0.1, 0.1); the low-entropy row
    manages 9–12). On asterix the *low*-entropy cells win (best 19.1 ± 1.8 at
@@ -97,7 +99,7 @@ uv run python -m ppo.plot --runs runs/breakout-grid --out figures --prefix break
   between clip settings could be bonus-clip interaction. Off, every nat is
   attributable to the clip.
 - **The clip has to actually fire.** Under CleanRL-default hyperparameters on
-  MinAtar the ratio leaves the clip range on <0.3% of samples — asymmetry
+  MinAtar the ratio leaves the clip range on <0.3% of samples, so asymmetry
   would be inert and the grid would measure seed noise. I probed until
   clipping engaged (~2%/side at `epochs=8, lr=1e-3`) while learning got
   *faster*. Probe table in [GUIDE.md](GUIDE.md#8-experimental-design-decisions-and-why).

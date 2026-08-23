@@ -92,7 +92,14 @@ def traj_figure(cells, out_path: Path, title: str, max_entropy: float | None):
     fig, (ax_e, ax_r) = plt.subplots(1, 2, figsize=(11, 4.2), dpi=160)
 
     for (cl, ch), seed_rows in sorted(cells.items()):
-        color, ls = _style(cl, ch, cls, chs)
+        # Color follows whichever bound varies; in a one-row/one-column slice
+        # the constant bound would otherwise paint every line the same.
+        if len(cls) == 1:
+            color, ls = PALETTE[chs.index(ch) % len(PALETTE)], "-"
+        elif len(chs) == 1:
+            color, ls = PALETTE[cls.index(cl) % len(PALETTE)], "-"
+        else:
+            color, ls = _style(cl, ch, cls, chs)
         for ax, key in ((ax_e, "entropy"), (ax_r, "episodic_return")):
             steps, mean, sd = _series(seed_rows, key)
             ax.plot(
@@ -195,18 +202,39 @@ def main() -> None:
         default=np.log(6),
         help="reference line for the entropy panel (default ln 6, MinAtar)",
     )
+    p.add_argument(
+        "--only-clip-low",
+        type=float,
+        default=None,
+        help="keep only cells with this clip_low (one-row slice)",
+    )
+    p.add_argument(
+        "--only-clip-high",
+        type=float,
+        default=None,
+        help="keep only cells with this clip_high (one-column slice)",
+    )
     args = p.parse_args()
 
     cells = load_runs(Path(args.runs))
+    if args.only_clip_low is not None:
+        cells = {k: v for k, v in cells.items() if k[0] == args.only_clip_low}
+    if args.only_clip_high is not None:
+        cells = {k: v for k, v in cells.items() if k[1] == args.only_clip_high}
     if not cells:
-        raise SystemExit(f"no runs found under {args.runs}")
+        raise SystemExit(f"no runs found under {args.runs} (after filters)")
     seeds = min(len(v) for v in cells.values())
     title = args.title or f"{Path(args.runs).name} — {seeds} seeds, ent_coef=0"
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    traj_figure(cells, out / f"{args.prefix}_trajectories.png", title, args.max_entropy)
-    if len(cells) >= 4:
+    # A full 4x4 grid is 16 lines — unreadable as trajectories. Slice figures
+    # get trajectories; the full grid gets the heatmap.
+    if len(cells) <= 6:
+        traj_figure(
+            cells, out / f"{args.prefix}_trajectories.png", title, args.max_entropy
+        )
+    if len(cells) >= 4 and args.only_clip_low is None and args.only_clip_high is None:
         heatmap_figure(cells, out / f"{args.prefix}_heatmap.png", title)
     print(f"wrote figures to {out}/ ({len(cells)} cells, >= {seeds} seeds each)")
 

@@ -20,35 +20,40 @@ the hottest clipping trick in LLM-RL is a large-vocabulary artifact — which is
 what DPPO ([arXiv:2602.04879](https://arxiv.org/abs/2602.04879)) predicts.
 Either answer is worth having.
 
-## Results so far
+## Results
 
-**Pilot: breakout, 4 corner cells + the PPO baseline, 3 seeds, 1M steps,
-`ent_coef = 0`.** Both predicted signs show up, cleanly outside the seed bands:
+**Full experiment: 4×4 grid (clip_low × clip_high) × 5 seeds × 3M steps,
+`ent_coef = 0`, on breakout and asterix — 160 runs.**
 
-![pilot trajectories](figures/pilot_breakout_trajectories.png)
+![breakout heatmap](figures/breakout_heatmap.png)
+![asterix heatmap](figures/asterix_heatmap.png)
 
-| cell (clip_low, clip_high) | final entropy | final return |
-|---|---|---|
-| (0.05, 0.5) — max-entropy corner | **1.29 ± 0.02** | 13.3 ± 0.5 |
-| (0.05, 0.1) | 1.22 ± 0.04 | **14.8 ± 0.9** |
-| (0.2, 0.2) — plain PPO | 0.99 ± 0.06 | 7.5 ± 0.9 |
-| (0.3, 0.5) | 0.73 ± 0.06 | 6.4 ± 0.4 |
-| (0.3, 0.1) — min-entropy corner | **0.35 ± 0.02** | 6.6 ± 0.3 |
+The dose-response, seen directly (one slice shown; the clip_high slice and
+asterix versions are in `figures/`):
 
-Three things I did not expect to be this clear at 1M steps:
+![breakout vary clip_low](figures/breakout_varylow_trajectories.png)
 
-1. **The mechanism transfers.** Tighter `clip_low` → higher entropy; looser
-   `clip_high` → higher entropy. Same signs Park et al. measured at |A|≈100k,
-   here at |A|=6, with no entropy bonus anywhere.
-2. **`clip_low` is the dominant dial** (0.35 → 1.29 nats across its range;
-   `clip_high` moves entropy by ~0.1–0.4 at fixed `clip_low`).
-3. **The high-entropy cells learn twice as fast.** (0.05, 0.1) hits ~15 return
-   while plain PPO sits at ~7.5. On breakout, at this budget, the hidden
-   entropy regulator inside the clip is worth more than the symmetric default.
+Three findings:
 
-Pilot caveats: one game, 3 seeds, 1M steps, and the (0.05, ·) cells' return
-advantage may be breakout-specific exploration. The full 4×4 grid × 5 seeds ×
-3M steps on breakout *and* asterix is queued; heatmaps land here when it does.
+1. **The mechanism transfers.** Tighter `clip_low` → higher entropy, looser
+   `clip_high` → higher entropy — monotone along both axes of both heatmaps,
+   with no entropy bonus anywhere. Same signs Park et al. measured at
+   |A|≈100k, reproduced at |A|=6. On breakout the range is enormous: 0.30 to
+   1.23 nats, from the clip setting alone.
+2. **`clip_low` is the dominant dial.** It moves entropy ~3× further than
+   `clip_high` at matched widths. The literature's obsession with clip-higher
+   (DAPO) targets the weaker of the two knobs — at least at this scale.
+3. **The performance effect does not transfer — it flips.** On breakout,
+   high-entropy cells win (best 21.4 ± 2.1 at (0.1, 0.1); the low-entropy row
+   manages 9–12). On asterix the *low*-entropy cells win (best 19.1 ± 1.8 at
+   (0.2, 0.1); the max-entropy corner collapses to 7.6). The pilot's
+   "entropy doubles your return" was breakout-specific, exactly as its caveat
+   warned. Clip asymmetry is a real entropy knob, not a free lunch — the
+   right setting is a property of the environment.
+
+The 3-seed pilot that motivated the full grid (and caught my sign error in
+the mechanism story, see [GUIDE.md](GUIDE.md#5-splitting-the-clip)) is
+preserved in `figures/pilot_*`.
 
 ## Run it
 
@@ -97,10 +102,11 @@ uv run python -m ppo.plot --runs runs/breakout-grid --out figures --prefix break
 
 ## Honest limitations
 
-- MinAtar's entropy ceiling is $\ln 6 \approx 1.79$ nats. Effects are small in
-  absolute terms; only the seed bands make them meaningful. 5 seeds.
-- One environment family so far. The action-space-size dose-response (6 → 18 →
-  hundreds) is the load-bearing arm of the original design and isn't run yet.
+- MinAtar's entropy ceiling is $\ln 6 \approx 1.79$ nats; all effects live
+  inside that. 5 seeds per cell.
+- One environment family, one training regime (`epochs=8, lr=1e-3`). The
+  action-space-size dose-response (6 → 18 → hundreds), which would directly
+  test DPPO's vocabulary-size hypothesis, isn't run yet.
 - This is a student replication study of a mechanism, not a new method. If the
   full grid shows nothing outside the bands, that's the finding and it stays
   in this README.

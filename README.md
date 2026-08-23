@@ -25,6 +25,13 @@ Either answer is worth having.
 **Full experiment: 4×4 grid (clip_low × clip_high) × 5 seeds × 3M steps,
 `ent_coef = 0`, on breakout and asterix — 160 runs.**
 
+What the entropy difference looks like as behavior — same algorithm, same
+seed, only the clip bounds differ. Watch the action distributions: the
+min-entropy policy keeps collapsing to a single bar, the max-entropy one
+stays spread (regenerate with `uv run python -m ppo.render`):
+
+![entropy comparison](figures/entropy_comparison.gif)
+
 ![breakout heatmap](figures/breakout_heatmap.png)
 ![asterix heatmap](figures/asterix_heatmap.png)
 
@@ -79,7 +86,7 @@ uv run python -m ppo.plot --runs runs/breakout-grid --out figures --prefix break
 | `ppo/core.py` | the whole algorithm, one file. GAE, rollout, asymmetric-clip update |
 | `ppo/envs.py` | tiny vectorized wrapper: classic control + MinAtar, truncation done right |
 | `ppo/train.py` / `ppo/sweep.py` | one run / the resumable parallel grid |
-| `ppo/plot.py` | trajectories + heatmap figures from run logs |
+| `ppo/plot.py` / `ppo/render.py` | figures from run logs / the comparison GIF |
 | `walkthrough.ipynb` | the objective drawn until it makes sense, plus live mini-runs |
 | `GUIDE.md` | teaches PPO from zero: the math, the loop, the telemetry, the finding |
 | `tests/` | the math, as assertions |

@@ -116,49 +116,58 @@ def _draw_board(draw, x0, y0, obs):
             )
 
 
-def _draw_bars(draw, x0, y0, probs, entropy, fonts):
-    bar_w, gap, h_max = 40, 10, 64
-    baseline = y0 + h_max
+SIDE_W = 224
+
+
+def _draw_side(draw, x0, y0, probs, entropy, fonts):
+    """Right-hand column: one horizontal bar per action, entropy readout below."""
+    row_h, bar_max = 40, SIDE_W - 46
+    draw.text((x0, y0), "policy  \u03c0( a \u2758 s )", font=fonts["s"], fill=INK_DIM)
+    top = y0 + 26
     for i, p in enumerate(probs):
-        bx = x0 + i * (bar_w + gap)
-        h = max(3, int(p * h_max))
+        ry = top + i * row_h
+        draw.text((x0 + 8, ry + 10), ACTION_NAMES[i], font=fonts["mono"], fill=INK_DIM)
+        tx = x0 + 30
         draw.rounded_rectangle(
-            [bx, baseline - h, bx + bar_w, baseline],
-            radius=4,
-            fill=_blend(BLUE, CARD, 0.35 + 0.65 * min(1.0, p * 2)),
+            [tx, ry + 6, tx + bar_max, ry + row_h - 12],
+            radius=6, fill=_blend(CARD_EDGE, CARD, 0.5),
         )
-        draw.text(
-            (bx + bar_w / 2, baseline + 8),
-            ACTION_NAMES[i],
-            font=fonts["s"],
-            fill=INK_DIM,
-            anchor="ma",
+        w = max(4, int(p * bar_max))
+        draw.rounded_rectangle(
+            [tx, ry + 6, tx + w, ry + row_h - 12],
+            radius=6, fill=_blend(BLUE, CARD, 0.35 + 0.65 * min(1.0, p * 2)),
         )
-    end_x = x0 + len(probs) * bar_w + (len(probs) - 1) * gap
-    draw.line([x0 - 2, baseline + 1, end_x + 2, baseline + 1], fill=CARD_EDGE, width=1)
-    draw.text((end_x + 26, baseline - 40), "H", font=fonts["m"], fill=INK_DIM)
+    ey = top + 6 * row_h + 10
+    draw.line([x0, ey, x0 + SIDE_W - 16, ey], fill=CARD_EDGE, width=1)
+    draw.text((x0 + 8, ey + 14), "entropy", font=fonts["s"], fill=INK_DIM)
     draw.text(
-        (end_x + 26, baseline - 20), f"{entropy:.2f}", font=fonts["mono"], fill=INK
+        (x0 + SIDE_W - 16, ey + 8),
+        f"{entropy:.2f}",
+        font=fonts["l"], fill=INK, anchor="ra",
     )
+
+
+PANEL_W = 16 + BOARD + 18 + SIDE_W + 16
+PANEL_H = 58 + BOARD + 18
 
 
 def _draw_panel(draw, x0, y0, title, subtitle, state, fonts):
     obs, probs, entropy, score = state
-    w, h = BOARD + 32, 52 + BOARD + 12 + 100 + 10
     draw.rounded_rectangle(
-        [x0, y0, x0 + w, y0 + h], radius=14, fill=CARD, outline=CARD_EDGE, width=1
+        [x0, y0, x0 + PANEL_W, y0 + PANEL_H],
+        radius=14, fill=CARD, outline=CARD_EDGE, width=1,
     )
     draw.text((x0 + 18, y0 + 12), title, font=fonts["l"], fill=INK)
     draw.text(
-        (x0 + w - 18, y0 + 16),
+        (x0 + PANEL_W - 18, y0 + 16),
         f"score {score:.0f}",
         font=fonts["mono"],
         fill=INK_DIM,
         anchor="ra",
     )
     draw.text((x0 + 18, y0 + 36), subtitle, font=fonts["s"], fill=INK_DIM)
-    _draw_board(draw, x0 + 16, y0 + 58, obs)
-    _draw_bars(draw, x0 + 22, y0 + 58 + BOARD + 22, probs, entropy, fonts)
+    _draw_board(draw, x0 + 16, y0 + 64, obs)
+    _draw_side(draw, x0 + 16 + BOARD + 18, y0 + 64, probs, entropy, fonts)
 
 
 def _optimize(path: Path, fps: int) -> None:
@@ -206,8 +215,8 @@ def main() -> None:
         (args.right_title, *_simulate(args.right, args.env_seed, args.steps)),
     ]
 
-    panel_w, panel_h = BOARD + 32, 52 + BOARD + 12 + 100 + 10
     margin, gap = 18, 22
+    panel_w, panel_h = PANEL_W, PANEL_H
     cw, ch = 2 * panel_w + gap + 2 * margin, panel_h + 2 * margin + 26
     frames = []
     for t in range(args.steps):

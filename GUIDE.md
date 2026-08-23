@@ -84,23 +84,40 @@ $$L(\theta) = \mathbb{E}\left[ \min\!\big( r_t A_t,\; \mathrm{clip}(r_t,\, 1-\ep
 $\epsilon_{low} = \epsilon_{high} = 0.2$ is exactly PPO. Now map the bounds to
 the dead cells of the table:
 
+The key to both directions is asking **which actions actually reach each
+bound**. The ratio of an action with old probability $p$ can never exceed
+$1/p$ (probabilities cap at 1), and its log-prob gradient scales like
+$(1-p)$. A dominant action at $p=0.5$ can't even reach ratio 2 and moves
+slowly; a rare action at $p=0.01$ has a ratio ceiling of 100 and moves fast.
+**Both clip bounds therefore bind almost exclusively on rare actions.** Then:
+
 - $\epsilon_{low}$ controls the **bottom-left** dead zone — how long the
-  policy may keep suppressing an already-suppressed, bad-looking action.
-  A *small* $\epsilon_{low}$ cuts suppression off early. Rare actions keep
-  their probability mass → the entropy of the policy is held **up**.
+  policy may keep suppressing a rare, bad-looking action. Suppression drains
+  tail probability mass toward zero. A *tight* $\epsilon_{low}$ halts the
+  drain early → tail mass survives → entropy is held **up**.
 - $\epsilon_{high}$ controls the **top-right** dead zone — how long the policy
-  may keep boosting an already-boosted, good-looking action. A *large*
-  $\epsilon_{high}$ lets winners keep winning → probability mass concentrates
-  → entropy is pushed **down**.
+  may keep boosting a rare, good-looking action. Boosting rare actions
+  *rebuilds* tail mass. A *tight* $\epsilon_{high}$ freezes them almost
+  immediately (their ratios blow past the bound in one step) → the tail never
+  grows back → entropy is pushed **down**. Loosening it lets rare winners
+  climb → entropy **up**.
 
 That is the mechanism Park et al. ([arXiv:2509.26114](https://arxiv.org/abs/2509.26114))
-report in RL fine-tuning of LLMs: **clip-low raises entropy, clip-high lowers
-it**. DAPO ([arXiv:2503.14476](https://arxiv.org/abs/2503.14476)) exploits the
-first half — its "clip-higher" trick (in our notation: loosening
-$\epsilon_{high}$) is used to fight entropy collapse in frontier reasoning
-models. If the mechanism is real and general, PPO's symmetric $\epsilon = 0.2$
-has been quietly acting as an entropy regularizer since 2017, and the entropy
-bonus everyone tunes on top is partly redundant.
+report in RL fine-tuning of LLMs — clipping at the low bound preserves
+entropy, clipping at the high bound destroys it — and DAPO
+([arXiv:2503.14476](https://arxiv.org/abs/2503.14476)) exploits: its
+"clip-higher" trick loosens $\epsilon_{high}$ precisely to fight entropy
+collapse in frontier reasoning models. If the mechanism is real and general,
+PPO's symmetric $\epsilon = 0.2$ has been quietly acting as an entropy
+regulator since 2017, and the entropy bonus everyone tunes on top is partly
+redundant.
+
+(Confession, kept because it's instructive: my first draft of this section
+argued the opposite sign for $\epsilon_{high}$ — "a loose upper bound lets
+winners keep winning, so entropy falls." The pilot data said otherwise, and
+the ratio-ceiling argument above explains why: the upper bound never binds on
+winners, only on the tail. If your mental model of clipping is about the
+dominant action, it's backwards.)
 
 But every experiment in that literature has an action space of ~100k tokens.
 DPPO ([arXiv:2602.04879](https://arxiv.org/abs/2602.04879)) explicitly argues

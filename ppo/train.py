@@ -1,8 +1,8 @@
 """CLI entry point: one training run, one output directory.
 
 Examples:
-    uv run python train.py --env CartPole-v1 --total-steps 100000 --ent-coef 0.01
-    uv run python train.py --env minatar/breakout --clip-low 0.05 --clip-high 0.5 \
+    uv run python -m ppo.train --env CartPole-v1 --total-steps 100000 --ent-coef 0.01
+    uv run python -m ppo.train --env minatar/breakout --clip-low 0.05 --clip-high 0.5 \
         --total-steps 1000000 --seed 3 --out runs/breakout/cl0.05_ch0.5/seed3
 """
 
@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import dataclasses
 
-from ppo import Config, train
+from ppo.core import Config, train
 
 
 def parse_args() -> Config:

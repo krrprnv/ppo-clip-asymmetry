@@ -11,7 +11,7 @@ The default grid is the experiment:
 with ent_coef = 0 everywhere. (0.2, 0.2) is the PPO baseline cell.
 
 Example:
-    uv run python sweep.py --env minatar/breakout --seeds 1 2 3 4 5 \
+    uv run python -m ppo.sweep --env minatar/breakout --seeds 1 2 3 4 5 \
         --total-steps 3000000 --jobs 6 --out runs/breakout-grid
 """
 
@@ -66,7 +66,8 @@ def main() -> None:
         out_dir = Path(args.out) / f"cl{cl}_ch{ch}" / f"seed{seed}"
         cmd = [
             sys.executable,
-            "train.py",
+            "-m",
+            "ppo.train",
             "--env",
             args.env,
             "--clip-low",

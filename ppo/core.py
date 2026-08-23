@@ -31,7 +31,7 @@ import torch
 import torch.nn as nn
 from torch.distributions import Categorical
 
-from envs import SyncVecEnv
+from ppo.envs import SyncVecEnv
 
 
 @dataclass

@@ -60,21 +60,21 @@ uv sync
 uv run pytest
 
 # one training run
-uv run python train.py --env minatar/breakout --clip-low 0.05 --clip-high 0.5
+uv run python -m ppo.train --env minatar/breakout --clip-low 0.05 --clip-high 0.5
 
 # the experiment (4x4 grid x 5 seeds; overnight on a laptop, resumable)
-uv run python sweep.py --env minatar/breakout --out runs/breakout-grid
-uv run python plot.py --runs runs/breakout-grid --out figures --prefix breakout
+uv run python -m ppo.sweep --env minatar/breakout --out runs/breakout-grid
+uv run python -m ppo.plot --runs runs/breakout-grid --out figures --prefix breakout
 ```
 
 ## What's in here
 
 | file | what it is |
 |---|---|
-| `ppo.py` | the whole algorithm, one file. GAE, rollout, asymmetric-clip update |
-| `envs.py` | tiny vectorized wrapper: classic control + MinAtar, truncation done right |
-| `train.py` / `sweep.py` | one run / the resumable parallel grid |
-| `plot.py` | trajectories + heatmap figures from run logs |
+| `ppo/core.py` | the whole algorithm, one file. GAE, rollout, asymmetric-clip update |
+| `ppo/envs.py` | tiny vectorized wrapper: classic control + MinAtar, truncation done right |
+| `ppo/train.py` / `ppo/sweep.py` | one run / the resumable parallel grid |
+| `ppo/plot.py` | trajectories + heatmap figures from run logs |
 | `walkthrough.ipynb` | the objective drawn until it makes sense, plus live mini-runs |
 | `GUIDE.md` | full derivation, the dead-zone table, design decisions, reading list |
 | `tests/` | the math, as assertions |

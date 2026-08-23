@@ -9,7 +9,7 @@ Reads every runs/<grid>/cl{L}_ch{H}/seed{N}/metrics.jsonl under --runs and makes
                                single-hue sequential, values printed in cells.
 
 Usage:
-    uv run python plot.py --runs runs/pilot-breakout --out figures --prefix pilot_breakout
+    uv run python -m ppo.plot --runs runs/pilot-breakout --out figures --prefix pilot_breakout
 """
 
 from __future__ import annotations

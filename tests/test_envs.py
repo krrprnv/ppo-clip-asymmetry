@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from envs import SyncVecEnv
+from ppo.envs import SyncVecEnv
 
 
 def test_cartpole_shapes_and_dtypes():

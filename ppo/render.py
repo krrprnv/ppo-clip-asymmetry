@@ -189,6 +189,7 @@ def main() -> None:
     p.add_argument("--env-seed", type=int, default=7)
     p.add_argument("--steps", type=int, default=240)
     p.add_argument("--fps", type=int, default=12)
+    p.add_argument("--scale", type=float, default=1.0)
     p.add_argument("--out", default="figures/entropy_comparison.gif")
     args = p.parse_args()
 
@@ -229,7 +230,11 @@ def main() -> None:
             fill=INK_DIM,
             anchor="ma",
         )
-        frames.append(canvas.resize((int(cw * 0.75), int(ch * 0.75)), Image.LANCZOS))
+        if args.scale != 1.0:
+            canvas = canvas.resize(
+                (int(cw * args.scale), int(ch * args.scale)), Image.LANCZOS
+            )
+        frames.append(canvas)
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

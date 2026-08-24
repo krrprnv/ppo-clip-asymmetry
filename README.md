@@ -27,55 +27,36 @@ Either answer is worth having.
 **Full experiment: 4×4 grid (clip_low × clip_high) × 5 seeds × 3M steps,
 `ent_coef = 0`, on breakout, asterix, space_invaders, and freeway: 320 runs.**
 
-What the entropy difference looks like as behavior: same algorithm, same
-seed, only the clip bounds differ. Watch the action distributions: the
-min-entropy policy keeps collapsing to a single bar, the max-entropy one
-stays spread (regenerate with `uv run python -m ppo.render`):
+Same algorithm, same seed, only the clip bounds differ — the min-entropy
+policy collapses to one action, the max-entropy one stays spread:
 
 ![entropy comparison](figures/entropy_comparison.gif)
 
+**Three findings across the four games:**
+
+| | entropy vs clip bounds | return vs entropy | reward |
+|---|---|---|---|
+| breakout | strictly monotone, both axes (0.30→1.23 nats) | positive | dense |
+| space_invaders | monotone within seed bands | flat | dense |
+| asterix | monotone, one inversion at tightest `clip_low` | negative | dense |
+| freeway | no structure; seeds go bimodal | unstable | **sparse** |
+
+1. **The mechanism transfers where reward is dense.** Tighter `clip_low` →
+   higher entropy, looser `clip_high` → higher entropy, no entropy bonus
+   anywhere — Park et al.'s signs at |A|≈100k, reproduced at |A|=6. Freeway,
+   the one sparse-reward game, breaks it: the advantage signal is too rare for
+   the clip's dead zones to bite consistently.
+2. **`clip_low` is the dominant dial**, moving entropy ~2–3× further than
+   `clip_high`. The famous trick (DAPO's clip-higher) tunes the weaker knob.
+3. **The performance effect is environment-specific** — positive, flat,
+   negative, unstable, one per game. Cell-level return rankings are seed
+   noise everywhere; only the row-level entropy pattern survives the error
+   bars. Clip asymmetry is a real entropy knob, not a free lunch.
+
+Breakout is the cleanest example (all four games' heatmaps, the dose-response
+trajectories, and the 3-seed pilot are in [`figures/`](figures/)):
+
 ![breakout heatmap](figures/breakout_heatmap.png)
-![asterix heatmap](figures/asterix_heatmap.png)
-![space_invaders heatmap](figures/space_invaders_heatmap.png)
-![freeway heatmap](figures/freeway_heatmap.png)
-
-The dose-response, seen directly (one slice shown; the clip_high slice and
-asterix versions are in `figures/`):
-
-![breakout vary clip_low](figures/breakout_varylow_trajectories.png)
-
-Three findings:
-
-1. **The mechanism transfers — in dense-reward games.** Tighter `clip_low` →
-   higher entropy, looser `clip_high` → higher entropy, with no entropy bonus
-   anywhere. Breakout: strictly monotone along both axes, all 16 cells,
-   spanning 0.30 to 1.23 nats from the clip setting alone. Space_invaders:
-   monotone within the seed bands on both axes. Asterix: trend holds with
-   local inversions at the tightest `clip_low` (0.44 ± 0.03 at (0.05, 0.1)
-   vs 0.51 ± 0.02 at (0.1, 0.1) — outside the bands, a real wrinkle).
-   Freeway — the sparse-reward game — breaks the pattern: no monotone
-   structure, and the tightest-`clip_low` row is seed-bimodal (entropy sd up
-   to ±0.20, return sd up to ±23: some seeds solve at ~60, others collapse).
-   Same signs Park et al. measured at |A|≈100k, reproduced at |A|=6 — where
-   reward is dense enough for the advantage signal to be consistent.
-2. **`clip_low` is the dominant dial** in three of the four games, moving
-   entropy ~2-3× further than `clip_high` at matched widths. The literature's
-   obsession with clip-higher (DAPO) targets the weaker of the two knobs, at
-   least at this scale.
-3. **The performance effect is environment-specific everywhere.** Return
-   correlates *positively* with entropy on breakout (tight-clip_low rows
-   ~18–21 vs ~9–12, outside the bands), *negatively* on asterix (max-entropy
-   corner: 7.6 ± 2.1), is *flat* on space_invaders (most cells 120–160 with
-   sds up to ±24; the best cell is a low-entropy one), and *unstable* on
-   freeway (the two best cells, ~60 with sd <1, are both tight-`clip_high`;
-   most others are seed-bimodal). Cell-level rankings are noise in every
-   game — only row-level patterns survive the error bars. Clip asymmetry is
-   a real entropy knob, not a free lunch — what to do with the knob is a
-   property of the environment.
-
-The 3-seed pilot that motivated the full grid (and caught my sign error in
-the mechanism story, see [GUIDE.md](GUIDE.md#7-splitting-the-clip)) is
-preserved in `figures/pilot_*`.
 
 ## Run it
 

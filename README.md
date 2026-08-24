@@ -52,13 +52,15 @@ Three findings:
 2. **`clip_low` is the dominant dial.** It moves entropy ~3× further than
    `clip_high` at matched widths. The literature's obsession with clip-higher
    (DAPO) targets the weaker of the two knobs, at least at this scale.
-3. **The performance effect does not transfer — it flips.** On breakout,
-   high-entropy cells win (best 21.4 ± 2.1 at (0.1, 0.1); the low-entropy row
-   manages 9–12). On asterix the *low*-entropy cells win (best 19.1 ± 1.8 at
-   (0.2, 0.1); the max-entropy corner collapses to 7.6). The pilot's
-   "entropy doubles your return" was breakout-specific, exactly as its caveat
-   warned. Clip asymmetry is a real entropy knob, not a free lunch — the
-   right setting is a property of the environment.
+3. **The performance effect does not transfer — the correlation flips.**
+   Return correlates *positively* with entropy on breakout (the tight-clip_low
+   rows sit at ~18–21 vs ~9–12 for the loose row, outside the seed bands) and
+   *negatively* on asterix (the max-entropy corner drops to 7.6 ± 2.1).
+   Cell-level rankings are noise (return sd up to ±5.8; breakout's best cell
+   is actually a mid-entropy one) — only the row-level pattern survives the
+   error bars. The pilot's "entropy doubles your return" was breakout-specific,
+   exactly as its caveat warned. Clip asymmetry is a real entropy knob, not a
+   free lunch — the right setting is a property of the environment.
 
 The 3-seed pilot that motivated the full grid (and caught my sign error in
 the mechanism story, see [GUIDE.md](GUIDE.md#7-splitting-the-clip)) is
@@ -112,10 +114,19 @@ uv run python -m ppo.plot --runs runs/breakout-grid --out figures --prefix break
 ## Honest limitations
 
 - MinAtar's entropy ceiling is $\ln 6 \approx 1.79$ nats; all effects live
-  inside that. 5 seeds per cell.
-- One environment family, one training regime (`epochs=8, lr=1e-3`). The
-  action-space-size dose-response (6 → 18 → hundreds), which would directly
-  test DPPO's vocabulary-size hypothesis, isn't run yet.
+  inside that. 5 seeds per cell; heatmaps report mean ± sd.
+- **The clip bounds also change update size, not just which samples die:**
+  realized per-update KL varies ~4× across the grid (≈0.0003 at clip_low=0.05
+  up to ≈0.0012+ at clip_low=0.3, both games). Entropy differences therefore
+  co-move with step-size differences, and this experiment cannot separate
+  "the clip's dead zones move entropy" from "smaller effective updates
+  preserve entropy." A KL-matched control is the single most important
+  follow-up.
+- Two games so far ("flips per game" is an anecdote, not yet a pattern —
+  space_invaders and freeway grids are running and land here when done).
+- One training regime (`epochs=8, lr=1e-3`). The action-space-size
+  dose-response (6 → 18 → hundreds), which would directly test DPPO's
+  vocabulary-size hypothesis, isn't run yet.
 - This is a student replication study of a mechanism, not a new method. If the
   full grid shows nothing outside the bands, that's the finding and it stays
   in this README.

@@ -139,14 +139,16 @@ def traj_figure(cells, out_path: Path, title: str, max_entropy: float | None):
 
 
 def _final(seed_rows, key, tail_frac=0.1):
-    """Mean of the last tail_frac of training, then mean across seeds."""
+    """Per-seed mean of the last tail_frac of training -> (mean, sd) across seeds."""
     per_seed = []
     for rows in seed_rows:
         tail = rows[-max(1, int(len(rows) * tail_frac)) :]
         vals = [r[key] for r in tail if r[key] is not None]
         if vals:
             per_seed.append(float(np.mean(vals)))
-    return float(np.mean(per_seed)) if per_seed else np.nan
+    if not per_seed:
+        return np.nan, np.nan
+    return float(np.mean(per_seed)), float(np.std(per_seed))
 
 
 def heatmap_figure(cells, out_path: Path, title: str):
@@ -158,8 +160,11 @@ def heatmap_figure(cells, out_path: Path, title: str):
         axes, ("entropy", "episodic_return"), ("final entropy (nats)", "final return")
     ):
         grid = np.full((len(cls), len(chs)), np.nan)
+        sds = np.full((len(cls), len(chs)), np.nan)
         for (cl, ch), seed_rows in cells.items():
-            grid[cls.index(cl), chs.index(ch)] = _final(seed_rows, key)
+            m, sd = _final(seed_rows, key)
+            grid[cls.index(cl), chs.index(ch)] = m
+            sds[cls.index(cl), chs.index(ch)] = sd
         im = ax.imshow(grid, cmap="Blues", aspect="auto", origin="lower")
         for i in range(len(cls)):
             for j in range(len(chs)):
@@ -170,10 +175,10 @@ def heatmap_figure(cells, out_path: Path, title: str):
                     ax.text(
                         j,
                         i,
-                        f"{grid[i, j]:.2f}",
+                        f"{grid[i, j]:.2f}\n±{sds[i, j]:.2f}",
                         ha="center",
                         va="center",
-                        fontsize=10,
+                        fontsize=8.5,
                         color="white" if frac > 0.6 else INK,
                     )
         ax.set_xticks(range(len(chs)), [str(c) for c in chs])

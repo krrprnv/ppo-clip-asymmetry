@@ -45,10 +45,13 @@ asterix versions are in `figures/`):
 Three findings:
 
 1. **The mechanism transfers.** Tighter `clip_low` → higher entropy, looser
-   `clip_high` → higher entropy: monotone along both axes of both heatmaps,
-   with no entropy bonus anywhere. Same signs Park et al. measured at
-   |A|≈100k, reproduced at |A|=6. On breakout the range is enormous: 0.30 to
-   1.23 nats, from the clip setting alone.
+   `clip_high` → higher entropy, with no entropy bonus anywhere. On breakout
+   this is strictly monotone along both axes, all 16 cells. On asterix the
+   trend holds but with local inversions at the tightest `clip_low` (0.44 ±
+   0.03 at (0.05, 0.1) vs 0.51 ± 0.02 at (0.1, 0.1) — outside the bands, so
+   a real wrinkle, not noise). Same signs Park et al. measured at |A|≈100k,
+   reproduced at |A|=6. On breakout the range is enormous: 0.30 to 1.23
+   nats, from the clip setting alone.
 2. **`clip_low` is the dominant dial.** It moves entropy ~3× further than
    `clip_high` at matched widths. The literature's obsession with clip-higher
    (DAPO) targets the weaker of the two knobs, at least at this scale.
